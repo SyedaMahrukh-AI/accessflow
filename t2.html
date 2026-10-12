@@ -1,0 +1,705 @@
+<!doctype html>
+<!-- lang is set so screen readers pick the right pronunciation (SC 3.1.1) -->
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AccessFlow — Web Accessibility Toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ACCESSFLOW · RETRO-POP LAB
+   Chunky borders, hard shadows, one accent colour per module.
+   Text tokens are kept >= 4.5:1 and UI borders >= 3:1 in every
+   theme, because an accessibility app should practice what it
+   preaches (SC 1.4.3 / 1.4.11).
+   ============================================================ */
+:root{
+  --bg:#FFF3DE; --dots:#EBD5A8;
+  --fg:#2A1B45; --mut:#5C4B77; --card:#FFFFFF; --panel:#FCEBD0;
+  --ink:#2A1B45; --hard:#2A1B45; --ontint:#2A1B45;
+  --ac:#FF5C4D;
+  --ok:#0A7A4C; --bad:#C01F33;
+  --coral:#FF5C4D; --coralT:#C22443;
+  --teal:#2AB3A3;  --tealT:#0E7A6C;
+  --amber:#FFC53D; --amberT:#8F5E00;
+  --pink:#F956A6;  --pinkT:#C2185B;
+  --link:#C2185B; --focus:#C22443;
+  --display:'Archivo Black',Impact,'Arial Black',sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+:root[data-theme=dark]{
+  --bg:#181030; --dots:rgba(255,255,255,.09);
+  --fg:#F4EEFF; --mut:#C4B8EC; --card:#221840; --panel:#2C2050;
+  --ink:#EFE8FF; --hard:#0E0820; --ontint:#1A0F2E;
+  --ac:#FF6B5B;
+  --ok:#4EE39A; --bad:#FF8577;
+  --coral:#FF6B5B; --coralT:#FF9C8F;
+  --teal:#3FD6C2; --tealT:#8CEBDD;
+  --amber:#FFC53D; --amberT:#FFD66E;
+  --pink:#FF7AB8; --pinkT:#FFA9D4;
+  --link:#FFA9D4; --focus:#FFC53D;
+  color-scheme:dark;
+}
+:root[data-theme=contrast]{
+  --bg:#000; --dots:transparent;
+  --fg:#fff; --mut:#fff; --card:#000; --panel:#141414;
+  --ink:#fff; --hard:#fff; --ontint:#000;
+  --ac:#FFE600;
+  --ok:#00FF87; --bad:#FF7B72;
+  --coral:#FFE600; --coralT:#FFE600;
+  --teal:#FFE600;  --tealT:#FFE600;
+  --amber:#FFE600; --amberT:#FFE600;
+  --pink:#FFE600;  --pinkT:#FFE600;
+  --link:#FFE600; --focus:#FFE600;
+  color-scheme:dark;
+}
+
+/* ---------- base ---------- */
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:1rem}
+body{
+  margin:0;min-height:100vh;
+  font:1rem/1.65 'Space Grotesk',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  color:var(--fg);
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(circle at 12% -10%,rgba(255,92,77,.16),transparent 34rem),
+    radial-gradient(circle at 88% 8%,rgba(42,179,163,.18),transparent 32rem),
+    radial-gradient(circle at 50% 118%,rgba(249,86,166,.13),transparent 40rem),
+    radial-gradient(var(--dots) 1.6px,transparent 1.7px);
+  background-size:auto,auto,auto,28px 28px;
+}
+html[data-theme=contrast] body{background-image:none}
+[hidden]{display:none!important}
+:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
+::selection{background:var(--amber);color:var(--ontint)}
+a{color:var(--link);font-weight:600;text-decoration-thickness:2px;text-underline-offset:3px}
+p,li{max-width:70ch}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:1rem;top:-5rem;z-index:99;background:var(--amber);color:var(--ontint);
+ border:3px solid var(--ink);box-shadow:5px 5px 0 var(--hard);padding:.8rem 1.2rem;font-weight:800;
+ border-radius:12px;text-decoration:none;transition:top .15s}
+.skip:focus{top:1rem;color:var(--ontint)}
+
+/* ---------- floating background shapes (decorative only) ---------- */
+.bgdeco{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+html[data-theme=contrast] .bgdeco{display:none}
+.shape{position:absolute;display:block}
+.s1{top:6%;right:-70px;width:230px;height:230px;border:6px solid var(--coral);border-radius:50%;opacity:.55;animation:drift 22s ease-in-out infinite alternate}
+.s2{bottom:14%;left:-60px;width:170px;height:170px;border:6px solid var(--teal);border-radius:28px;opacity:.5;animation:drift 26s ease-in-out infinite alternate-reverse}
+.s3{top:58%;right:5%;width:95px;height:95px;background:var(--amber);border:4px solid var(--ink);border-radius:20px;opacity:.4;animation:spin 40s linear infinite}
+.s4{top:34%;left:3%;width:130px;height:130px;border:6px dashed var(--pink);border-radius:42% 58% 55% 45%;opacity:.5;animation:spin 70s linear infinite reverse}
+@keyframes drift{to{transform:translate(26px,34px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes wob{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg) scale(1.05)}}
+
+/* ---------- marquee strip ---------- */
+.marquee{position:relative;z-index:1;overflow:hidden;padding:.55rem 0;
+ background:var(--ink);color:var(--bg);border-top:4px solid var(--ink);border-bottom:4px solid var(--ink)}
+.mq{display:flex;width:max-content;animation:mq 30s linear infinite}
+.mq span{white-space:nowrap;padding-right:2.6rem;font-family:var(--display);font-size:.8rem;letter-spacing:.16em}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* ---------- header ---------- */
+header{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:2.2rem clamp(1rem,3vw,2rem) 1rem}
+.brand{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;margin-bottom:1.1rem}
+.logo{width:48px;height:48px;flex:none;filter:drop-shadow(4px 4px 0 var(--hard))}
+.brandname{font-family:var(--display);font-size:.78rem;letter-spacing:.26em;color:var(--mut)}
+.sticker{display:inline-block;border:2.5px solid var(--ink);padding:.32rem .62rem;border-radius:9px;
+ font-family:var(--display);font-size:.68rem;letter-spacing:.1em;background:var(--amber);color:var(--ontint);
+ box-shadow:3px 3px 0 var(--hard);transform:rotate(-3deg);animation:wob 5s ease-in-out infinite}
+.st2{background:var(--pink);animation-delay:1.2s}
+h1{
+ font-family:var(--display);font-weight:400;
+ font-size:clamp(3.1rem,9vw,6.2rem);line-height:.95;letter-spacing:-.02em;
+ margin:.15rem 0 1.1rem;color:var(--fg);
+ text-shadow:.055em .055em 0 var(--coral),.12em .12em 0 var(--amber);
+}
+.h1b{color:var(--coralT)}
+html[data-theme=contrast] h1{text-shadow:none;color:var(--ac)}
+html[data-theme=contrast] .h1b{color:var(--ac)}
+.lede{max-width:64ch;font-size:1.1rem;color:var(--mut);margin:0 0 1.4rem;
+ background:var(--card);border:3px solid var(--ink);border-radius:16px;
+ box-shadow:8px 8px 0 var(--hard);padding:1rem 1.2rem}
+.console{display:flex;flex-wrap:wrap;align-items:center;gap:.9rem;width:max-content;max-width:100%;margin-bottom:1.7rem;
+ background:var(--card);border:3px solid var(--ink);border-radius:16px;padding:.7rem 1rem;box-shadow:8px 8px 0 var(--hard)}
+.console label{font-family:var(--display);font-size:.72rem;letter-spacing:.18em;color:var(--mut)}
+#theme{min-width:11rem;font-weight:700}
+.conschips{display:flex;gap:.45rem;flex-wrap:wrap}
+.conschips i{font-style:normal;font-family:var(--display);font-size:.62rem;letter-spacing:.12em;
+ border:2px solid var(--ink);border-radius:999px;padding:.28rem .6rem;background:var(--panel);color:var(--fg)}
+
+/* ---------- module tabs ---------- */
+[role=tablist]{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.9rem;margin:1.5rem 0 0;padding:0;border:0}
+[role=tab]{display:flex;flex-direction:column;align-items:flex-start;gap:.32rem;text-align:left;
+ min-height:5.4rem;padding:.85rem 1rem;background:var(--card);color:var(--fg);font:inherit;
+ border:3px solid var(--ink);border-radius:16px;box-shadow:5px 5px 0 var(--hard);cursor:pointer;
+ transition:transform .16s ease,box-shadow .16s ease,background .16s ease}
+#t1{--tc:var(--coral)} #t2{--tc:var(--teal)} #t3{--tc:var(--amber)} #t4{--tc:var(--pink)}
+.tnum{font-family:var(--display);font-size:.7rem;letter-spacing:.14em;background:var(--tc);color:var(--ontint);
+ border:2.5px solid var(--ink);border-radius:7px;padding:.12rem .45rem}
+.tname{font-weight:700;font-size:1.02rem}
+.thint{font-size:.76rem;color:var(--mut)}
+[role=tab]:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--hard)}
+[role=tab]:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--hard)}
+[role=tab][aria-selected=true]{background:var(--tc);color:var(--ontint);transform:translate(-3px,-3px);box-shadow:9px 9px 0 var(--hard)}
+[role=tab][aria-selected=true] .tnum{background:var(--ontint);color:var(--tc);border-color:var(--ontint)}
+[role=tab][aria-selected=true] .thint{color:var(--ontint)}
+
+/* ---------- main / panels ---------- */
+main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:2rem clamp(1rem,3vw,2rem) 4rem}
+[role=tabpanel]{animation:pop .28s ease both}
+@keyframes pop{from{opacity:.35;transform:translateY(10px)}to{opacity:1;transform:none}}
+#p1{--mod:var(--coral);--modT:var(--coralT)}
+#p2{--mod:var(--teal); --modT:var(--tealT)}
+#p3{--mod:var(--amber);--modT:var(--amberT)}
+#p4{--mod:var(--pink); --modT:var(--pinkT)}
+.mod-head{display:flex;flex-wrap:wrap;gap:1.2rem;align-items:flex-start;margin:0 0 1.7rem}
+.mod-num{font-family:var(--display);font-size:clamp(2.6rem,6vw,4.6rem);line-height:1;color:var(--modT);
+ transform:rotate(-4deg);text-shadow:5px 5px 0 var(--panel)}
+@supports (-webkit-text-stroke:2px #000){.mod-num{color:transparent;-webkit-text-stroke:2.5px var(--modT);text-shadow:none}}
+.mod-head h2{font-family:var(--display);font-weight:400;font-size:clamp(1.7rem,4vw,2.6rem);line-height:1.08;letter-spacing:-.01em;margin:0 0 .45rem}
+.mod-head p{color:var(--mut);margin:0;max-width:68ch;font-size:1.03rem}
+.hl{background:var(--mod);color:var(--ontint);padding:.02em .2em;border-radius:.14em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+
+/* ---------- cards ---------- */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,26rem),1fr));gap:1.4rem;align-items:stretch}
+.grid2>.card{margin:0}
+.span2{grid-column:1/-1}
+.card{position:relative;background:var(--card);border:3px solid var(--ink);border-radius:18px;
+ padding:1.25rem 1.35rem;margin:1.3rem 0;box-shadow:8px 8px 0 var(--mod)}
+.card h3{display:flex;align-items:center;gap:.6rem;font-family:var(--display);font-weight:400;
+ font-size:1.15rem;letter-spacing:.01em;margin:0 0 .65rem}
+.card h3::before{content:"";flex:none;width:1rem;height:1rem;border:3px solid var(--ink);
+ background:var(--mod);border-radius:5px;transform:rotate(10deg)}
+.card p{font-size:.98rem}
+h4{font-weight:800}
+
+/* ---------- controls ---------- */
+.row{display:flex;flex-wrap:wrap;gap:1.1rem;align-items:center}
+.row>*{max-width:100%}
+button,.btn,select,input[type=text],input[type=email],input[type=range],textarea{font:inherit;min-height:2.9rem}
+.btn,button.btn{
+ background:var(--ac);color:var(--ontint);border:3px solid var(--ink);border-radius:12px;
+ padding:.6rem 1.15rem;font-weight:800;cursor:pointer;box-shadow:4px 4px 0 var(--hard);
+ transition:transform .14s ease,box-shadow .14s ease}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--hard)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--hard)}
+button:not(.btn):not([role=tab]){
+ background:var(--card);color:var(--fg);border:3px solid var(--ink);border-radius:12px;
+ padding:.55rem 1rem;font-weight:700;cursor:pointer;box-shadow:4px 4px 0 var(--hard);
+ transition:transform .14s ease,box-shadow .14s ease,background .14s ease}
+button:not(.btn):not([role=tab]):hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--hard);background:var(--panel)}
+button:not(.btn):not([role=tab]):active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--hard)}
+input[type=text],input[type=email],select{
+ background:var(--card);color:var(--fg);border:3px solid var(--ink);border-radius:10px;
+ padding:.5rem .7rem;max-width:100%}
+input[type=color]{width:4.2rem;height:2.9rem;padding:.25rem;border:3px solid var(--ink);
+ border-radius:10px;background:var(--card);cursor:pointer;box-shadow:3px 3px 0 var(--hard)}
+input[type=range]{accent-color:var(--ac);flex:1 1 10rem;min-width:8rem}
+input[type=checkbox],input[type=radio]{width:1.3rem;height:1.3rem;accent-color:var(--ac);cursor:pointer;vertical-align:middle}
+label{font-weight:700}
+label:has(input){cursor:pointer}
+.field{margin:1rem 0}
+.field label{display:block;font-weight:800;margin-bottom:.35rem;font-size:.95rem}
+.err{color:var(--bad);font-weight:800}
+.field .err:empty{display:none}
+.toast{min-height:2.9rem;margin-top:.9rem;border:3px dashed var(--ink);border-radius:12px;
+ background:var(--panel);padding:.65rem 1rem;font-weight:700}
+
+/* error summary (focus lands here after a failed submit) */
+#esum:not([hidden]){background:var(--card);border:3px solid var(--ink);border-radius:14px;
+ padding:.9rem 1.1rem;box-shadow:6px 6px 0 var(--bad);margin:1rem 0}
+#esum:focus{outline:4px solid var(--focus);outline-offset:3px}
+#esum h4{font-family:var(--display);color:var(--bad);margin:.2rem 0 .4rem;font-size:1.05rem}
+#esum ul{margin:.3rem 0 0;padding-left:1.4rem}
+
+/* ---------- accordion ---------- */
+.acc button{display:flex;justify-content:space-between;align-items:center;gap:.8rem;width:100%;text-align:left;margin:.55rem 0}
+.acc button::after{content:"+";flex:none;width:1.7rem;height:1.7rem;line-height:1.55;text-align:center;
+ font-family:var(--display);font-size:1.05rem;background:var(--amber);color:var(--ontint);
+ border:2.5px solid var(--ink);border-radius:8px;box-shadow:2px 2px 0 var(--hard)}
+.acc button[aria-expanded=true]::after{content:"−";background:var(--coral)}
+.acc button[aria-expanded=true]:hover::after{background:var(--coral)}
+.acc [role=region]{border:3px solid var(--ink);border-top:0;border-radius:0 0 14px 14px;
+ background:var(--panel);padding:1rem}
+
+/* ---------- menu button ---------- */
+.menu{position:absolute;background:var(--card);border:3px solid var(--ink);border-radius:14px;
+ padding:.4rem;z-index:9;min-width:12rem;box-shadow:8px 8px 0 var(--hard)}
+.menu button{display:block;width:100%;text-align:left;border:0!important;box-shadow:none!important;
+ border-radius:9px;padding:.55rem .7rem;margin:.15rem 0;font-weight:700;background:transparent}
+.menu button:hover{background:var(--amber)!important;color:var(--ontint);transform:none!important}
+
+/* ---------- dialog ---------- */
+dialog{background:var(--card);color:var(--fg);border:3px solid var(--ink);border-radius:18px;
+ max-width:30rem;padding:0;box-shadow:12px 12px 0 var(--hard)}
+dialog::backdrop{background:rgba(30,16,60,.62);backdrop-filter:blur(3px) saturate(1.2)}
+.dlgbar{display:flex;gap:.45rem;padding:.85rem 1.3rem 0}
+.dlgbar i{width:.85rem;height:.85rem;border-radius:50%;border:2.5px solid var(--ink)}
+.dlgbar i:nth-child(1){background:var(--coral)}
+.dlgbar i:nth-child(2){background:var(--amber)}
+.dlgbar i:nth-child(3){background:var(--teal)}
+dialog h4{font-family:var(--display);font-weight:400;font-size:1.3rem;margin:.7rem 0 .3rem;padding:0 1.3rem}
+dialog p{margin:.2rem 0 1rem;padding:0 1.3rem;color:var(--mut)}
+.dlgfoot{display:flex;flex-wrap:wrap;gap:.8rem;padding:0 1.3rem 1.3rem}
+
+/* ---------- code / consoles / tables ---------- */
+pre{background:var(--panel);border:3px solid var(--ink);border-radius:12px;padding:.9rem 1rem;
+ overflow-x:auto;white-space:pre-wrap;box-shadow:5px 5px 0 var(--hard)}
+code{font-family:var(--mono);font-size:.9em}
+.term,.consolebox{border:3px solid var(--ink);border-radius:16px;overflow:hidden;background:var(--panel);box-shadow:8px 8px 0 var(--mod)}
+.term::before,.consolebox::before{content:"REPORT OUTPUT";display:block;font-family:var(--display);
+ font-size:.68rem;letter-spacing:.2em;background:var(--ink);color:var(--bg);padding:.55rem .95rem}
+.consolebox::before{content:"KEYBOARD EVENT LOG"}
+.term pre{border:0;border-radius:0;box-shadow:none;background:transparent;min-height:12rem;margin:0}
+#rep:focus{outline:4px solid var(--focus);outline-offset:-4px}
+.klog{list-style:none;margin:0;padding:.9rem 1.1rem 1.1rem;font-family:var(--mono);font-size:.86rem}
+.klog li{padding:.34rem 0;border-bottom:2px dotted var(--mut)}
+.klog li:last-child{border-bottom:0}
+.klog li::before{content:"› ";color:var(--modT);font-weight:800}
+#klog:empty::after{content:"Press any key — events will appear here.";color:var(--mut);font-style:italic}
+.wrap{overflow:auto;border:3px solid var(--ink);border-radius:16px;background:var(--card);padding:1rem;box-shadow:6px 6px 0 var(--mod)}
+table.t{border-collapse:collapse;width:100%}
+.t th,.t td{border:2px solid var(--ink);padding:.5rem;text-align:left}
+.pf{font-weight:900}
+.pv{padding:1rem;border:3px solid var(--ink);border-radius:12px;margin:1rem 0;font-weight:600}
+fieldset{border:3px solid var(--ink);border-radius:14px;padding:1rem 1.1rem;margin:1rem 0;background:var(--card);box-shadow:6px 6px 0 var(--mod)}
+legend{font-weight:800;padding:.15rem .55rem;border:2.5px solid var(--ink);border-radius:8px;background:var(--panel)}
+progress{appearance:none;-webkit-appearance:none;width:100%;height:1.5rem;border:3px solid var(--ink);
+ border-radius:999px;overflow:hidden;background:var(--panel)}
+progress::-webkit-progress-bar{background:var(--panel)}
+progress::-webkit-progress-value{background:repeating-linear-gradient(45deg,var(--coral) 0 12px,var(--amber) 12px 24px)}
+progress::-moz-progress-bar{background:repeating-linear-gradient(45deg,var(--coral) 0 12px,var(--amber) 12px 24px)}
+
+/* ---------- module 2 ---------- */
+.cpick{display:flex;flex-direction:column;gap:.45rem}
+.cpick label{font-family:var(--display);font-size:.72rem;letter-spacing:.16em;color:var(--mut)}
+.cin{display:flex;gap:.5rem;align-items:center}
+#fgh,#bgh{font-family:var(--mono);font-weight:700}
+#ratio{font-family:var(--display);font-size:1.5rem;color:var(--modT)}
+#results{list-style:none;padding:0;margin:.8rem 0}
+#results li{border:2.5px solid var(--ink);border-radius:10px;padding:.45rem .7rem;margin:.45rem 0;
+ background:var(--card);font-weight:600;font-size:.93rem;box-shadow:3px 3px 0 var(--mod)}
+output{font-family:var(--display)}
+#zo{color:var(--modT);font-size:1.05rem}
+#mres{font-weight:700;border:3px dashed var(--ink);border-radius:12px;padding:.6rem .9rem;background:var(--panel)}
+#sugout{font-weight:700}
+
+/* ---------- module 3 ---------- */
+.viewset{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center;padding:.8rem 1rem}
+.viewset label,.plate-label{display:inline-flex;align-items:center;gap:.45rem;border:2.5px solid var(--ink);
+ border-radius:999px;padding:.35rem .8rem;background:var(--card);font-weight:800;font-size:.9rem;
+ box-shadow:3px 3px 0 var(--hard);transition:background .15s ease}
+.viewset label:has(input:checked){background:var(--amber);color:var(--ontint)}
+.split{display:flex;flex-wrap:wrap;gap:1.3rem;align-items:flex-start;margin:1.1rem 0}
+.split>.wrap{flex:1 1 22rem}
+#wb:not([hidden])::before,#wa:not([hidden])::before{
+ content:"BEFORE · BROKEN BUILD";display:block;width:max-content;
+ font-family:var(--display);font-size:.68rem;letter-spacing:.18em;
+ background:var(--coral);color:var(--ontint);border:2.5px solid var(--ink);
+ border-radius:8px;padding:.3rem .6rem;margin-bottom:.9rem;box-shadow:3px 3px 0 var(--hard)}
+#wa:not([hidden])::before{content:"AFTER · FIXED BUILD";background:var(--teal)}
+#prog{font-weight:800;margin:1rem 0 .35rem}
+.plate{font-family:var(--display);font-weight:400;font-size:1.25rem;display:inline-block;
+ background:var(--mod);color:var(--ontint);border:3px solid var(--ink);border-radius:12px;
+ padding:.55rem .95rem;margin:1.5rem 0 .7rem;box-shadow:5px 5px 0 var(--hard)}
+#issues{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:1.2rem}
+#issues article.card{margin:0;box-shadow:6px 6px 0 var(--mod)}
+#issues article h4{font-family:var(--display);font-weight:400;font-size:1rem;line-height:1.3;margin:.1rem 0 .55rem}
+#issues article>p{display:inline-block;font-family:var(--mono);font-size:.78rem;font-weight:700;
+ color:var(--modT);background:var(--panel);border:2px solid var(--ink);border-radius:8px;padding:.28rem .55rem}
+#issues article label{display:inline-flex;align-items:center;gap:.45rem;border:2.5px solid var(--ink);
+ border-radius:999px;padding:.35rem .75rem;margin:.45rem .4rem .45rem 0;background:var(--card);
+ font-weight:800;font-size:.88rem;box-shadow:3px 3px 0 var(--hard);transition:background .15s ease}
+#issues article label:has(.fnd:checked){background:var(--coral);color:var(--ontint)}
+#issues article label:not(:has(.fnd)):has(input:checked){background:var(--teal);color:var(--ontint)}
+#issues article details{margin-top:.8rem;border-top:3px dotted var(--mut);padding-top:.5rem}
+#issues article summary{font-weight:800;color:var(--modT);cursor:pointer;padding:.4rem 0;list-style:none;
+ display:flex;align-items:center;gap:.5rem}
+#issues article summary::-webkit-details-marker{display:none}
+#issues article summary::before{content:"▸";transition:transform .18s ease}
+#issues article details[open] summary::before{transform:rotate(90deg)}
+#issues article details p{font-size:.93rem}
+#issues article pre{box-shadow:none;margin:.4rem 0 .8rem}
+
+/* ---------- module 4 ---------- */
+#chk h3{font-family:var(--display);font-weight:400;font-size:1.2rem;display:inline-block;
+ background:var(--card);color:var(--fg);border:3px solid var(--ink);border-radius:12px;
+ padding:.55rem .95rem;margin:1.7rem 0 .8rem;box-shadow:5px 5px 0 var(--hard)}
+#chk h3:nth-of-type(1){background:var(--coral);color:var(--ontint)}
+#chk h3:nth-of-type(2){background:var(--teal);color:var(--ontint)}
+#chk h3:nth-of-type(3){background:var(--amber);color:var(--ontint)}
+#chk h3:nth-of-type(4){background:var(--pink);color:var(--ontint)}
+#chk fieldset label{display:inline-flex;align-items:center;gap:.4rem;margin:.3rem .6rem .3rem 0;
+ padding:.32rem .68rem;border:2.5px solid var(--ink);border-radius:999px;font-weight:800;
+ font-size:.88rem;background:var(--card);box-shadow:3px 3px 0 var(--hard);transition:background .15s ease}
+#chk label:has(input[value=pass]:checked){background:var(--teal);color:var(--ontint)}
+#chk label:has(input[value=fail]:checked){background:var(--coral);color:var(--ontint)}
+#chk label:has(input[value=na]:checked){background:var(--panel)}
+#cpst{font-weight:700;margin:.7rem 0}
+
+/* ---------- footer ---------- */
+footer{position:relative;z-index:1;max-width:1180px;margin:2.5rem auto 0;
+ padding:1.6rem clamp(1rem,3vw,2rem) 2.6rem;border-top:4px solid var(--ink);color:var(--mut);font-size:.95rem}
+footer strong{color:var(--fg)}
+
+/* ---------- Sample UI (fixed light surface so Before/After compare fairly in any theme) ----------
+   The .bad rules ARE the demo (low contrast, removed focus, tiny text) — keep them exactly. */
+.sm{background:#fff;color:#111;padding:1rem;font-size:1em;border-radius:10px}
+.sm h2{font-size:1.4em;margin:.2em 0}.sm h3,.sm h5{font-size:1.1em}
+.sm table{border-collapse:collapse}
+.sm.good{font-size:1em;max-width:100%}.sm.good *{max-width:100%}
+.sm.good p{color:#444}.sm.good a{color:#0a4fa3}
+.sm.good button{background:#0b5c63;color:#fff;border:2px solid #0b5c63;padding:.4em .9em;min-height:2.75rem;
+ cursor:pointer;border-radius:8px;box-shadow:none;font-weight:400}
+.sm.good button:hover{transform:none;box-shadow:none;background:#0b5c63}
+.sm.good input{border:2px solid #555;padding:.4em;background:#fff;color:#111;min-height:2.75rem}
+.sm.good label{display:block;font-weight:600}
+.sm.good .er{color:#a4170f;font-weight:600;display:block}
+.sm.good :focus-visible{outline:3px solid #0a4fa3;outline-offset:2px}
+.sm.good td,.sm.good th{border:1px solid #555;padding:.3em}
+.sm.bad{width:600px;font-size:14px}
+.sm.bad button{background:#f2f2f2;color:#111;border:1px solid #bbb;padding:.25em .6em;box-shadow:none;font-weight:400;min-height:auto}
+.sm.bad button:hover{transform:none;box-shadow:none;background:#f2f2f2}
+.bad .hd{display:flex;justify-content:space-between}
+.bad .lc{color:#aaa}.bad a{color:#7ab}
+.bad *:focus{outline:none}
+.bad .clk{display:inline-block;background:#2b7a82;color:#fff;padding:8px 14px;cursor:pointer}
+.bad input{border:1px solid #ddd;padding:6px}.bad .redb{border:2px solid #d33}
+.bad td{border:1px solid #ccc;padding:4px}
+.sp *{line-height:1.5!important;letter-spacing:.12em!important;word-spacing:.16em!important}.sp p{margin-bottom:2em!important}
+
+/* ---------- responsive / motion / print ---------- */
+@media(max-width:860px){
+ [role=tablist]{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .split{display:block}
+ .split>.wrap{margin:0 0 1.3rem}
+ .console{width:100%}
+}
+@media(max-width:560px){
+ .brandname,.sticker,.mod-num{display:none}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{
+ body{background:#fff;color:#000}
+ header,.noprint,[role=tablist],.skip,footer,.marquee,.bgdeco,.console{display:none!important}
+ .card,.wrap,.term,.consolebox,fieldset,pre{box-shadow:none!important;border:2px solid #555;break-inside:avoid}
+ .mod-head h2,.hl{color:#000;background:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+
+<!-- decorative floating shapes -->
+<div class="bgdeco" aria-hidden="true"><span class="shape s1"></span><span class="shape s2"></span><span class="shape s3"></span><span class="shape s4"></span></div>
+
+<header>
+ <div class="brand">
+  <svg class="logo" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+   <rect x="4" y="4" width="56" height="56" rx="14" fill="var(--ac)" stroke="var(--ink)" stroke-width="5"/>
+   <circle cx="32" cy="19" r="7" fill="var(--ink)"/>
+   <path d="M17 31c9 7 21 7 30 0" stroke="var(--ink)" stroke-width="6" fill="none" stroke-linecap="round"/>
+   <circle cx="32" cy="46" r="9" fill="none" stroke="var(--ink)" stroke-width="6"/>
+  </svg>
+  <span class="brandname">ACCESSFLOW · A11Y LAB</span>
+  <span class="sticker" aria-hidden="true">WCAG 2.1 AA</span>
+  <span class="sticker st2" aria-hidden="true">100% HANDS-ON</span>
+ </div>
+
+ <h1>Access<span class="h1b">Flow</span></h1>
+ <p class="lede">Your hands-on accessibility studio. Explore keyboard patterns, measure contrast, repair common interface barriers, and build an audit report against WCAG 2.1 AA.</p>
+
+ <div class="console"><label for="theme">THEME</label>
+  <select id="theme"><option value="light">Light</option><option value="dark">Dark</option><option value="contrast">High contrast</option></select>
+  <span class="conschips" aria-hidden="true"><i>KBD-FIRST</i><i>4.5:1</i><i>320PX</i><i>200%</i></span></div>
+
+ <div role="tablist" aria-label="Lab modules" id="maintabs">
+  <button role="tab" id="t1" aria-controls="p1" aria-selected="true"><span class="tnum" aria-hidden="true">01</span><span class="tname">Keyboard &amp; ARIA</span><span class="thint" aria-hidden="true">tabs · dialogs · menus · forms</span></button>
+  <button role="tab" id="t2" aria-controls="p2" aria-selected="false" tabindex="-1"><span class="tnum" aria-hidden="true">02</span><span class="tname">Contrast &amp; zoom</span><span class="thint" aria-hidden="true">checker · 400% · CVD filters</span></button>
+  <button role="tab" id="t3" aria-controls="p3" aria-selected="false" tabindex="-1"><span class="tnum" aria-hidden="true">03</span><span class="tname">Fix the UI</span><span class="thint" aria-hidden="true">before / after · 14 issues</span></button>
+  <button role="tab" id="t4" aria-controls="p4" aria-selected="false" tabindex="-1"><span class="tnum" aria-hidden="true">04</span><span class="tname">Audit report</span><span class="thint" aria-hidden="true">checklist · export · print</span></button>
+ </div>
+</header>
+
+<div class="marquee noprint" aria-hidden="true"><div class="mq">
+ <span>KEYBOARD NAVIGATION ✦ 4.5:1 CONTRAST ✦ 200% ZOOM ✦ REFLOW AT 320PX ✦ ARIA PATTERNS ✦ FOCUS VISIBLE ✦ NO KEYBOARD TRAPS ✦ WCAG 2.1 AA ✦&nbsp;</span>
+ <span>KEYBOARD NAVIGATION ✦ 4.5:1 CONTRAST ✦ 200% ZOOM ✦ REFLOW AT 320PX ✦ ARIA PATTERNS ✦ FOCUS VISIBLE ✦ NO KEYBOARD TRAPS ✦ WCAG 2.1 AA ✦&nbsp;</span>
+</div></div>
+
+<main id="main" tabindex="-1">
+
+<section role="tabpanel" id="p1" aria-labelledby="t1">
+ <div class="mod-head"><span class="mod-num" aria-hidden="true">01</span>
+  <div><h2>Keyboard and <span class="hl">screen reader</span> lab</h2>
+  <p>Use only the keyboard here. Each card lists what to test and the ARIA it uses. Prefer native HTML; ARIA fills gaps native elements cannot.</p></div></div>
+
+ <div class="grid2">
+
+ <div class="card"><h3>Tabs</h3>
+  <p><strong>Test:</strong> Tab to the module tabs above, then use Left, Right, Home and End. <strong>ARIA:</strong> tablist, tab, tabpanel, aria-selected, aria-controls, roving tabindex.</p></div>
+
+ <div class="card"><h3>Accordion</h3>
+  <p><strong>Test:</strong> Enter or Space on a heading button. <strong>ARIA:</strong> aria-expanded, aria-controls.</p>
+  <div class="acc">
+   <button id="ah1" aria-expanded="false" aria-controls="ap1">What is a focus indicator?</button>
+   <div id="ap1" role="region" aria-labelledby="ah1" hidden>The outline that shows where keyboard focus is (SC 2.4.7).</div>
+   <button id="ah2" aria-expanded="false" aria-controls="ap2">Why use a real button?</button>
+   <div id="ap2" role="region" aria-labelledby="ah2" hidden>Buttons get focus, Enter, Space and a role for free (SC 2.1.1, 4.1.2).</div>
+  </div></div>
+
+ <div class="card"><h3>Modal dialog</h3>
+  <p><strong>Test:</strong> Open it, press Tab (focus stays inside), press Esc (focus returns here). <strong>ARIA:</strong> native dialog with showModal() supplies the modal role, focus trap and Esc; aria-labelledby and aria-describedby name it.</p>
+  <button class="btn" id="openDlg">Open dialog</button>
+  <dialog id="dlg" aria-labelledby="dt" aria-describedby="dd">
+   <div class="dlgbar" aria-hidden="true"><i></i><i></i><i></i></div>
+   <h4 id="dt">Confirm</h4><p id="dd">Focus is trapped in this dialog until you close it.</p>
+   <div class="dlgfoot"><button class="btn" id="closeDlg">Close</button> <button id="other">Another control</button></div>
+  </dialog></div>
+
+ <div class="card"><h3>Menu button</h3>
+  <p><strong>Test:</strong> Enter or Down Arrow opens; Up, Down, Home, End move; Esc closes and returns focus. <strong>ARIA:</strong> aria-haspopup, aria-expanded, menu, menuitem.</p>
+  <div style="position:relative;display:inline-block">
+   <button id="menubtn" aria-haspopup="menu" aria-expanded="false" aria-controls="menulist">Actions</button>
+   <div id="menulist" class="menu" role="menu" aria-labelledby="menubtn" hidden>
+    <button role="menuitem" tabindex="-1">Copy</button><button role="menuitem" tabindex="-1">Rename</button><button role="menuitem" tabindex="-1">Delete</button></div></div></div>
+
+ <div class="card span2"><h3>Form with validation</h3>
+  <p><strong>Test:</strong> Submit empty. Focus moves to the error summary; each link jumps to its field. <strong>ARIA:</strong> aria-required, aria-invalid, aria-describedby, role=status.</p>
+  <div id="esum" class="err" tabindex="-1" hidden></div>
+  <form id="frm" novalidate>
+   <div class="field"><label for="fname">Name (required)</label><input id="fname" type="text" aria-required="true" aria-describedby="fname-err" autocomplete="name"><div id="fname-err" class="err"></div></div>
+   <div class="field"><label for="femail">Email (required)</label><input id="femail" type="email" aria-required="true" aria-describedby="femail-err" autocomplete="email"><div id="femail-err" class="err"></div></div>
+   <button class="btn" type="submit">Send</button></form>
+  <div id="status" class="toast" role="status"></div></div>
+
+ <div class="card span2"><h3>Keyboard event log</h3>
+  <p>Shows each key and the focused element, so you can check focus order (SC 2.4.3).</p>
+  <div class="consolebox"><ol id="klog" class="klog" aria-label="Recent key events"></ol></div></div>
+
+ </div>
+</section>
+
+<section role="tabpanel" id="p2" aria-labelledby="t2" hidden>
+ <div class="mod-head"><span class="mod-num" aria-hidden="true">02</span>
+  <div><h2>Contrast and <span class="hl">magnification</span> tester</h2>
+  <p>Pick colors, push the zoom, and look through simulated color vision to see where interfaces break down.</p></div></div>
+
+ <div class="grid2">
+
+ <div class="card"><h3>Contrast checker</h3>
+  <div class="row">
+   <div class="cpick"><label for="fgc">TEXT COLOR</label>
+    <div class="cin"><input type="color" id="fgc" value="#767676"> <input type="text" id="fgh" value="#767676" aria-label="Text color hex" size="8"></div></div>
+   <div class="cpick"><label for="bgc">BACKGROUND COLOR</label>
+    <div class="cin"><input type="color" id="bgc" value="#ffffff"> <input type="text" id="bgh" value="#ffffff" aria-label="Background color hex" size="8"></div></div>
+  </div>
+  <p><strong>Ratio: <span id="ratio"></span>:1</strong> (shown rounded down, never up)</p>
+  <ul id="results"></ul>
+  <div class="pv" id="pv"><p style="margin:0;font-size:1rem">Normal text sample</p><p style="margin:0;font-size:1.5rem">Large text sample (24px)</p><p style="margin:0;font-size:1.167rem;font-weight:700">Large bold sample (18.66px bold)</p></div>
+  <p><button id="sugg">Suggest a passing text color (4.5:1)</button> <span id="sugout" role="status"></span></p>
+  <p>Large text means at least 24px regular or 18.66px bold. The suggestion blends your text color toward black or white until the target is met, which keeps the hue.</p></div>
+
+ <div class="card"><h3>Magnification, reflow and color vision</h3>
+  <div class="row">
+   <label for="ver">Sample</label><select id="ver"><option value="g">After (fixed)</option><option value="b">Before (broken)</option></select>
+   <label for="zoom">Text size <output id="zo">100%</output></label><input type="range" id="zoom" min="100" max="400" step="25" value="100">
+   <label for="cb">Color vision</label><select id="cb"><option value="">Normal</option><option value="pro">Protanopia</option><option value="deu">Deuteranopia</option><option value="tri">Tritanopia</option><option value="ach">Achromatopsia</option></select>
+  </div>
+  <div class="row"><label><input type="checkbox" id="rf"> Reflow at 320px (SC 1.4.10)</label><label><input type="checkbox" id="sp"> Text spacing (SC 1.4.12)</label></div>
+  <p id="mres" role="status"></p>
+  <div class="wrap"><div id="stage"></div></div>
+  <p>SC 1.4.4 asks that text resize to 200% without loss of content or function. This is a simulation: also test with browser zoom, the OS magnifier, and a screen reader such as NVDA, JAWS or VoiceOver.</p></div>
+
+ </div>
+</section>
+
+<section role="tabpanel" id="p3" aria-labelledby="t3" hidden>
+ <div class="mod-head"><span class="mod-num" aria-hidden="true">03</span>
+  <div><h2>WCAG 2.1 <span class="hl">remediation</span> workshop</h2>
+  <p>One broken coffee-shop page, fourteen real failures. Find them, fix them, tick them off.</p></div></div>
+
+ <fieldset class="viewset"><legend>View</legend>
+  <label><input type="radio" name="view" value="b" checked> Before</label>
+  <label><input type="radio" name="view" value="a"> After</label>
+  <label><input type="radio" name="view" value="s"> Side by side</label></fieldset>
+ <div class="split">
+  <div id="wb" class="wrap demo"></div>
+  <div id="wa" class="wrap demo" hidden></div></div>
+ <p id="prog" role="status"></p><progress id="pbar" max="14" value="0" aria-label="Issues found"></progress>
+ <h3 class="plate">ISSUE TRACKER</h3><div id="issues"></div>
+</section>
+
+<section role="tabpanel" id="p4" aria-labelledby="t4" hidden>
+ <div class="mod-head"><span class="mod-num" aria-hidden="true">04</span>
+  <div><h2>Audit report and <span class="hl">checklist</span></h2>
+  <p>Rate each success criterion, write your notes, then generate, copy or print the report.</p></div></div>
+
+ <div class="grid2">
+ <div class="card"><h3>How to test</h3>
+  <p>Keyboard only: Tab, Shift+Tab, Enter, Space, arrows, Esc. Screen readers: NVDA with Firefox or Chrome, VoiceOver with Safari, TalkBack on Android. Also check zoom to 200%, contrast tools, and automated scanners (axe DevTools, Lighthouse, WAVE). Automated tools find only a portion of WCAG issues, so manual testing is required.</p></div>
+ </div>
+
+ <div id="chk"></div>
+ <div class="row noprint"><button class="btn" id="gen">Generate report</button><button id="cpy">Copy report as text</button><button id="prt">Print</button></div>
+ <div class="term"><pre id="rep" tabindex="-1" aria-live="off">Choose Generate report to build a summary.</pre></div><p id="cpst" role="status"></p>
+</section>
+</main>
+
+<footer><p><strong>AccessFlow</strong> — limits: this app cannot replace testing with real assistive technology, and its scanners check only what they can compute.</p></footer>
+
+<!-- SVG color vision filters, applied to the sample with CSS filter:url() -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<filter id="pro"><feColorMatrix type="matrix" values="0.567 0.433 0 0 0 0.558 0.442 0 0 0 0 0.242 0.758 0 0 0 0 0 1 0"/></filter>
+<filter id="deu"><feColorMatrix type="matrix" values="0.625 0.375 0 0 0 0.7 0.3 0 0 0 0 0.3 0.7 0 0 0 0 0 1 0"/></filter>
+<filter id="tri"><feColorMatrix type="matrix" values="0.95 0.05 0 0 0 0 0.433 0.567 0 0 0 0.475 0.525 0 0 0 0 0 1 0"/></filter>
+<filter id="ach"><feColorMatrix type="matrix" values="0.299 0.587 0.114 0 0 0.299 0.587 0.114 0 0 0.299 0.587 0.114 0 0 0 0 0 1 0"/></filter>
+</defs></svg>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const TE=(h)=>String(h).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* Theme: start from the OS preference, then let the native select decide */
+const ts=$('#theme');ts.value=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+const setTheme=()=>document.documentElement.dataset.theme=ts.value;setTheme();ts.onchange=setTheme;
+
+/* Tabs: roving tabindex so the tablist is one Tab stop; arrows move inside it */
+const tabs=$$('[role=tab]');
+function selTab(t){tabs.forEach(x=>{const on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;$('#'+x.getAttribute('aria-controls')).hidden=!on;});}
+tabs.forEach(t=>t.onclick=()=>selTab(t));
+ $('#maintabs').addEventListener('keydown',e=>{const i=tabs.indexOf(document.activeElement);if(i<0)return;let n=-1;
+ if(e.key==='ArrowRight')n=(i+1)%tabs.length;else if(e.key==='ArrowLeft')n=(i-1+tabs.length)%tabs.length;else if(e.key==='Home')n=0;else if(e.key==='End')n=tabs.length-1;
+ if(n>-1){e.preventDefault();tabs[n].focus();selTab(tabs[n]);}});
+
+/* Polite live region: clear first so repeated messages are still announced */
+function say(m){const s=$('#status');s.textContent='';setTimeout(()=>s.textContent=m,60);}
+
+/* Accordion */
+ $$('.acc button').forEach(b=>b.onclick=()=>{const o=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',String(!o));$('#'+b.getAttribute('aria-controls')).hidden=o;});
+
+/* Modal: native <dialog>.showModal() traps focus and handles Esc; we restore focus explicitly */
+const dlg=$('#dlg'),op=$('#openDlg');op.onclick=()=>dlg.showModal();$('#closeDlg').onclick=()=>dlg.close();dlg.addEventListener('close',()=>op.focus());
+
+/* Menu button pattern from the ARIA Authoring Practices Guide */
+const mb=$('#menubtn'),ml=$('#menulist'),mi=$$('[role=menuitem]',ml);
+function openM(i){ml.hidden=false;mb.setAttribute('aria-expanded','true');mi[i].focus();}
+function closeM(f){ml.hidden=true;mb.setAttribute('aria-expanded','false');if(f)mb.focus();}
+mb.onclick=()=>ml.hidden?openM(0):closeM(true);
+mb.onkeydown=e=>{if(e.key==='ArrowDown'){e.preventDefault();openM(0);}else if(e.key==='ArrowUp'){e.preventDefault();openM(mi.length-1);}};
+ml.onkeydown=e=>{const i=mi.indexOf(document.activeElement);let n=-1;
+ if(e.key==='ArrowDown')n=(i+1)%mi.length;else if(e.key==='ArrowUp')n=(i-1+mi.length)%mi.length;else if(e.key==='Home')n=0;else if(e.key==='End')n=mi.length-1;
+ else if(e.key==='Escape'){closeM(true);return;}else if(e.key==='Tab'){closeM(false);return;}
+ if(n>-1){e.preventDefault();mi[n].focus();}};
+mi.forEach(m=>m.onclick=()=>{closeM(true);say('Chose: '+m.textContent);});
+
+/* Form: errors are text (not color only), tied to fields, and summarized with focus */
+ $('#frm').onsubmit=e=>{e.preventDefault();const errs=[];
+ [['fname','Enter your name.'],['femail','Enter an email address like name@example.com.']].forEach(([id,m])=>{
+  const f=$('#'+id),er=$('#'+id+'-err'),ok=f.value.trim()&&(id!=='femail'||/^\S+@\S+\.\S+$/.test(f.value));
+  f.setAttribute('aria-invalid',String(!ok));er.textContent=ok?'':'Error: '+m;if(!ok)errs.push([id,m]);});
+ const sum=$('#esum');
+ if(errs.length){sum.innerHTML='<h4>'+errs.length+(errs.length>1?' problems':' problem')+' to fix</h4><ul>'+errs.map(([id,m])=>'<li><a href="#'+id+'">'+TE(m)+'</a></li>').join('')+'</ul>';sum.hidden=false;sum.focus();}
+ else{sum.hidden=true;say('Form sent.');}};
+ $('#esum').onclick=e=>{if(e.target.tagName==='A'){e.preventDefault();$(e.target.getAttribute('href')).focus();}};
+
+/* Keyboard event log and the deliberate keyboard trap used by the Before sample */
+const klog=$('#klog');
+function nm(el){return (el.getAttribute&&el.getAttribute('aria-label'))||(el.labels&&el.labels[0]&&el.labels[0].textContent.trim())||(el.textContent||'').trim().slice(0,28);}
+document.addEventListener('keydown',e=>{const el=document.activeElement;
+ const li=document.createElement('li');li.textContent=e.key+' on <'+el.tagName.toLowerCase()+'>'+(el.getAttribute('role')?' role='+el.getAttribute('role'):'')+' "'+nm(el)+'"';
+ klog.prepend(li);while(klog.children.length>8)klog.lastChild.remove();
+ if(el.classList&&el.classList.contains('trap')){if(e.key==='Tab')e.preventDefault();if(e.key==='Escape')el.blur();}});
+
+/* ---------- Module 2: contrast math exactly as WCAG 2.x defines it ---------- */
+function norm(h){h=h.trim();if(/^#[0-9a-f]{3}$/i.test(h))h='#'+[...h.slice(1)].map(c=>c+c).join('');return /^#[0-9a-f]{6}$/i.test(h)?h.toLowerCase():null;}
+function lum(h){const c=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255).map(v=>v<=0.04045?v/12.92:Math.pow((v+0.055)/1.055,2.4));return .2126*c[0]+.7152*c[1]+.0722*c[2];}
+function ratio(a,b){const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
+function mix(h,t,p){return '#'+[1,3,5].map(i=>Math.round(parseInt(h.slice(i,i+2),16)*(1-p)+t*p).toString(16).padStart(2,'0')).join('');}
+function suggest(fg,bg,t){if(ratio(fg,bg)>=t)return fg;const to=lum(bg)>0.179?0:255;for(let k=1;k<=100;k++){const c=mix(fg,to,k/100);if(ratio(c,bg)>=t)return c;}return to?'#ffffff':'#000000';}
+const TESTS=[['Normal text AA',4.5],['Large text AA',3],['UI component or graphic AA (SC 1.4.11)',3],['Normal text AAA',7],['Large text AAA',4.5]];
+function pair(a,b,col){const pk=$('#'+a),tx=$('#'+b);pk.oninput=()=>{tx.value=pk.value;upd();};tx.oninput=()=>{const n=norm(tx.value);if(n){pk.value=n;upd();}};}
+pair('fgc','fgh');pair('bgc','bgh');
+function upd(){const f=norm($('#fgh').value),b=norm($('#bgh').value);if(!f||!b)return;const r=ratio(f,b);
+ $('#ratio').textContent=(Math.floor(r*100)/100).toFixed(2);
+ $('#results').innerHTML=TESTS.map(([n,t])=>{const ok=r>=t;return '<li><span class="pf" style="color:var(--'+(ok?'ok':'bad')+')">'+(ok?'\u2714 Pass':'\u2716 Fail')+'</span> '+n+' (needs '+t+':1)</li>';}).join('');
+ $('#pv').style.cssText='color:'+f+';background:'+b;}
+upd();
+ $('#sugg').onclick=()=>{const f=norm($('#fgh').value),b=norm($('#bgh').value);if(!f||!b){$('#sugout').textContent='Enter two valid hex colors first.';return;}
+ const s=suggest(f,b,4.5);$('#fgh').value=s;$('#fgc').value=s;upd();$('#sugout').textContent='Text color set to '+s+'.';};
+
+/* ---------- Sample UI: Before has 14 failures, After fixes each ---------- */
+const IMG="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='60'%3E%3Crect width='80' height='60' fill='%23c8a27a'/%3E%3C/svg%3E";
+function sample(g,p){const add="document.getElementById('"+p+"st').textContent='Added to cart'";
+ if(g)return '<div class="sm good"><header style="padding:0;display:flex;justify-content:space-between;align-items:center"><h2>Brew &amp; Bean</h2><button type="button" aria-label="Search">\uD83D\uDD0D</button></header>'
+ +'<h3>Our beans</h3><img src="'+IMG+'" alt="Bag of medium-roast Ethiopian beans" width="80" height="60">'
+ +'<p>Small-batch coffee, roasted weekly. <a href="#" onclick="return false">Read our roasting guide</a></p>'
+ +'<button type="button" onclick="'+add+'">Add to cart</button> <span id="'+p+'st" role="status"></span>'
+ +'<form onsubmit="return false"><label for="'+p+'e">Email</label><input id="'+p+'e" type="email" aria-invalid="true" aria-describedby="'+p+'ee" value="bob@"><span id="'+p+'ee" class="er">\u26A0 Error: enter a full email address.</span></form>'
+ +'<table><caption>Prices</caption><thead><tr><th scope="col">Bag</th><th scope="col">Price</th></tr></thead><tbody><tr><td>250 g</td><td>$9</td></tr></tbody></table></div>';
+ return '<div class="sm bad"><div class="hd"><h2>Brew &amp; Bean</h2><button type="button">\uD83D\uDD0D</button></div>'
+ +'<h5>Our beans</h5><img src="'+IMG+'">'
+ +'<p class="lc">Small-batch coffee, roasted weekly. To learn more <a href="#" onclick="return false" tabindex="5">click here</a></p>'
+ +'<div class="clk" onclick="'+add+'">Add to cart</div><span id="'+p+'st"></span>'
+ +'<form onsubmit="return false"><input class="redb" placeholder="Email" value="bob@"><br><br><input class="trap" value="Tab is trapped here. Press Esc to leave."></form>'
+ +'<table><tr><td>Bag</td><td>Price</td></tr><tr><td>250 g</td><td>$9</td></tr></table></div>';}
+
+/* Magnification stage */
+const stage=$('#stage');
+function renderStage(){stage.innerHTML=sample($('#ver').value==='g',$('#ver').value==='g'?'mg':'mb');applyStage();}
+function applyStage(){const z=+$('#zoom').value;$('#zo').textContent=z+'%';stage.style.fontSize=(16*z/100)+'px';
+ stage.style.width=$('#rf').checked?'320px':'';stage.classList.toggle('sp',$('#sp').checked);stage.style.filter=$('#cb').value?'url(#'+$('#cb').value+')':'';
+ const w=stage.parentElement;const scroll=stage.scrollWidth>w.clientWidth+1||$('#rf').checked&&stage.scrollWidth>322;
+ $('#mres').textContent=(scroll?'Warning: content scrolls horizontally here, which fails reflow (SC 1.4.10) when it happens at 320px or 400% zoom.':'No horizontal scrolling detected.')+($('#sp').checked?' Check the sample for clipped or overlapping text.':'');}
+['ver','zoom','rf','sp','cb'].forEach(id=>$('#'+id).addEventListener(id==='zoom'?'input':'change',id==='ver'?renderStage:applyStage));
+renderStage();
+
+/* ---------- Module 3: issue tracker ---------- */
+const IS=[
+['Low-contrast text','1.4.3','Contrast (Minimum)','AA','People with low vision, or anyone in bright light','Contrast checker: #aaa on white is about 2.3:1.','Use at least 4.5:1 for normal text.','<p style="color:#aaa">','<p style="color:#444">'],
+['Image without alt text','1.1.1','Non-text Content','A','Screen reader users','Inspect the img: no alt, so the file name may be read.','Describe meaningful images; use alt="" for decorative ones.','<img src="beans.png">','<img src="beans.png" alt="Bag of Ethiopian beans">'],
+['Clickable div','2.1.1','Keyboard','A','Keyboard, switch and screen reader users','Press Tab: the div never gets focus.','Use a native button.','<div onclick="add()">Add</div>','<button type="button" onclick="add()">Add</button>'],
+['Placeholder-only field','3.3.2','Labels or Instructions','A','Screen reader and cognitive-disability users','Type in the field: the hint disappears and there is no label.','Add a visible label tied with for and id.','<input placeholder="Email">','<label for="e">Email</label><input id="e">'],
+['Error shown by color only','1.4.1','Use of Color','A','Color-blind and low-vision users','Apply the achromatopsia filter: the red border is the only cue.','Add text and an icon, and link it with aria-describedby.','<input class="redb">','<input aria-invalid="true" aria-describedby="m"><span id="m">Error: ...</span>'],
+['No visible focus indicator','2.4.7','Focus Visible','AA','Keyboard users','Tab through: you cannot see where focus is.','Remove outline:none or provide a clear replacement.','*:focus{outline:none}',':focus-visible{outline:3px solid #0a4fa3}'],
+['Positive tabindex','2.4.3','Focus Order','A','Keyboard and screen reader users','Tab: the link with tabindex=5 is reached out of order.','Use tabindex 0 or -1 only and follow the DOM order.','<a tabindex="5">','<a href="#">'],
+['Skipped heading level','1.3.1','Info and Relationships','A','Screen reader users who navigate by headings','Headings list jumps from h2 to h5. (Strictly a best practice unless the structure is misrepresented.)','Use heading levels that reflect the outline.','<h2>..</h2><h5>..</h5>','<h2>..</h2><h3>..</h3>'],
+['Vague link text','2.4.4','Link Purpose (In Context)','A','Screen reader users who list links','Links list shows "click here".','Make the link text describe its destination.','<a>click here</a>','<a>Read our roasting guide</a>'],
+['Icon-only button without a name','4.1.2','Name, Role, Value','A','Screen reader and voice control users','Accessibility tree shows an empty name.','Add aria-label or visible text.','<button>\uD83D\uDD0D</button>','<button aria-label="Search">\uD83D\uDD0D</button>'],
+['Table without headers','1.3.1','Info and Relationships','A','Screen reader users','Cells are read with no column context.','Use th with scope, plus a caption.','<td>Bag</td>','<th scope="col">Bag</th>'],
+['Fixed pixel width','1.4.10','Reflow','AA','Low-vision users who zoom','Set 320px in Module 2: horizontal scroll appears.','Use max-width and relative units.','width:600px','max-width:100%'],
+['Status not announced','4.1.3','Status Messages','AA','Screen reader users','Press Add to cart: nothing is spoken.','Put the message in a role="status" region.','<span id="st"></span>','<span id="st" role="status"></span>'],
+['Keyboard trap','2.1.2','No Keyboard Trap','A','Keyboard users','Focus the last field and press Tab: focus never leaves. (Esc is the escape hatch here.)','Never intercept Tab without an exit.','onkeydown: Tab -> preventDefault','(no handler)']];
+ $('#wb').innerHTML=sample(false,'b');$('#wa').innerHTML=sample(true,'a');
+ $$('input[name=view]').forEach(r=>r.onchange=()=>{const v=$('input[name=view]:checked').value;$('#wb').hidden=v==='a';$('#wa').hidden=v==='b';});
+ $('#issues').innerHTML=IS.map((x,i)=>'<article class="card"><h4>'+(i+1)+'. '+TE(x[0])+'</h4><p>SC '+x[1]+' '+x[2]+' (Level '+x[3]+')</p>'
+ +'<label><input type="checkbox" class="fnd"> Found<span class="sr">: '+TE(x[0])+'</span></label> <label><input type="checkbox"> Fixed<span class="sr">: '+TE(x[0])+'</span></label>'
+ +'<details><summary>Details and fix</summary><p><strong>Affects:</strong> '+TE(x[4])+'</p><p><strong>Detect:</strong> '+TE(x[5])+'</p><p><strong>Fix:</strong> '+TE(x[6])+'</p>'
+ +'<p>Before:</p><pre><code>'+TE(x[7])+'</code></pre><p>After:</p><pre><code>'+TE(x[8])+'</code></pre></details></article>').join('');
+function prog(){const n=$$('.fnd:checked').length;$('#prog').textContent=n+' of '+IS.length+' issues found';$('#pbar').value=n;}
+ $('#issues').addEventListener('change',prog);prog();
+
+/* ---------- Module 4: checklist and report ---------- */
+const CK=[['Perceivable','1.1.1','Non-text Content'],['Perceivable','1.3.1','Info and Relationships'],['Perceivable','1.4.1','Use of Color'],['Perceivable','1.4.3','Contrast (Minimum)'],['Perceivable','1.4.4','Resize Text'],['Perceivable','1.4.10','Reflow'],['Perceivable','1.4.11','Non-text Contrast'],['Perceivable','1.4.12','Text Spacing'],
+['Operable','2.1.1','Keyboard'],['Operable','2.1.2','No Keyboard Trap'],['Operable','2.4.3','Focus Order'],['Operable','2.4.4','Link Purpose (In Context)'],['Operable','2.4.7','Focus Visible'],
+['Understandable','3.1.1','Language of Page'],['Understandable','3.3.1','Error Identification'],['Understandable','3.3.2','Labels or Instructions'],
+['Robust','4.1.2','Name, Role, Value'],['Robust','4.1.3','Status Messages']];
+ $('#chk').innerHTML=['Perceivable','Operable','Understandable','Robust'].map(P=>'<h3>'+P+'</h3>'+CK.map((c,i)=>c[0]!==P?'':
+ '<fieldset><legend>SC '+c[1]+' '+c[2]+'</legend>'+['pass:Pass','fail:Fail','na:Not applicable'].map(o=>{const[v,l]=o.split(':');return '<label><input type="radio" name="c'+i+'" value="'+v+'"> '+l+'</label> ';}).join('')
+ +'<div class="field"><label for="n'+i+'">Notes for SC '+c[1]+'</label><input type="text" id="n'+i+'" style="width:100%"></div></fieldset>').join('')).join('');
+function report(){const L=['AccessFlow audit report','Generated: '+new Date().toLocaleString(),''];const fails=[];
+ ['Perceivable','Operable','Understandable','Robust'].forEach(P=>{let p=0,f=0,na=0,u=0;
+  CK.forEach((c,i)=>{if(c[0]!==P)return;const v=($('input[name=c'+i+']:checked')||{}).value;if(v==='pass')p++;else if(v==='fail'){f++;fails.push('SC '+c[1]+' '+c[2]+': '+($('#n'+i).value||'(no notes)'));}else if(v==='na')na++;else u++;});
+  L.push(P+': '+p+' pass, '+f+' fail, '+na+' n/a, '+u+' not rated'+(p+f?' (pass rate '+Math.round(100*p/(p+f))+'% of rated items)':''));});
+ L.push('','Failed items:');L.push(...(fails.length?fails:['None recorded']));L.push('','Note: automated tools catch only some issues; confirm with manual and assistive technology tests.');return L.join('\n');}
+ $('#gen').onclick=()=>{const r=$('#rep');r.textContent=report();r.focus();};
+ $('#cpy').onclick=async()=>{const t=report();$('#rep').textContent=t;try{await navigator.clipboard.writeText(t);$('#cpst').textContent='Report copied.';}catch(e){$('#cpst').textContent='Copy was blocked. Select the report text and copy it manually.';}};
+ $('#prt').onclick=()=>{$('#rep').textContent=report();window.print();};
+</script>
+</body>
+</html>
